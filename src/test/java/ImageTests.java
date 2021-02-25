@@ -1,17 +1,14 @@
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+
 
 public class ImageTests extends BaseTest{
     String encodedImage;
@@ -28,16 +25,16 @@ public class ImageTests extends BaseTest{
     @Test
     void imageUploadFileTest() {
         uploadedImageDeleteHashCode = given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("image", catImage)
                 .expect()
                 .body("success", is(true))
                 .body("data.id", is(notNullValue()))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(responseSpecification)
                 .extract()
                 .response()
                 .jsonPath()
@@ -47,21 +44,23 @@ public class ImageTests extends BaseTest{
 //Загружаем base64
     @Test
     void imageUploadFile64baseTest() {
-
-        byte[] fileContent = getFileContentInBase64();
+        EncodeToBase64 encodeToBase64=new EncodeToBase64();
+        byte[] fileContent = encodeToBase64.getFileContentInBase64();
         encodedImage = Base64.getEncoder().encodeToString(fileContent);
 
+
+
         uploadedImageDeleteHashCode = given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("image", encodedImage)
                 .expect()
                 .body("success", is(true))
                 .body("data.id", is(notNullValue()))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(responseSpecification)
                 .extract()
                 .response()
                 .jsonPath()
@@ -71,16 +70,16 @@ public class ImageTests extends BaseTest{
     @Test
     void imageUploadFile0ByteTest() {
         uploadedImageDeleteHashCode = given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("image", byte0Image)
                 .expect()
                 .body("success", is(true))
                 .body("data.id", is(notNullValue()))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(responseSpecification)
                 .extract()
                 .response()
                 .jsonPath()
@@ -90,16 +89,16 @@ public class ImageTests extends BaseTest{
     @Test
     void imageUploadURLTest() {
         uploadedImageDeleteHashCode = given()
-                .headers("Authorization", token)
-                .multiPart("image", "https://nbnews.com.ua/wp-content/uploads/2020/06/maxresdefault-7.jpg")
+                .spec(reqSpec)
+                .multiPart("image", IMAGE_URL)
                 .expect()
                 .body("success", is(true))
                 .body("data.id", is(notNullValue()))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(responseSpecification)
                 .extract()
                 .response()
                 .jsonPath()
@@ -109,29 +108,29 @@ public class ImageTests extends BaseTest{
     @Test
     void imageUploadMoreThen10mb() {
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("image", lilia54)
                 .expect()
                 .body("success", is(false))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(400);
+                .spec(badRequestSpec);
 
     }
     //Копируем изображение
     @Test
     void imageCopyByHash() {
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .expect()
                 .body("success", is(true))
                 .when()
-                .post("/image/8Hk0cHV")
+                .post(FAVORITE_IMAGE)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(responseSpecification); // ТЕСТ КОДА СПЕЦИФИКАЦИИ
 
 
     }
@@ -139,14 +138,14 @@ public class ImageTests extends BaseTest{
     @Test
     void imageAddToFavorite() {
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .expect()
                 .body("success", is(true))
                 .when()
-                .post("image/8Hk0cHV/favorite")
+                .post(FAVORITE_IMAGE)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(responseSpecification);
 
     }
 
@@ -154,42 +153,42 @@ public class ImageTests extends BaseTest{
     @Test
     void imageAddBrokenEndPoint() {
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .expect()
                 .body("success", is(false))
                 .when()
-                .post("image/")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
-                .statusCode(400);
+                .spec(badRequestSpec);
 
     }
 
     // Updates the title or description of an image.
     @Test
-    void imageUpdateTitleOfDesc() {
+    void imageUpdateTitleAndDesc() {
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("title", "Heart")
                 .multiPart("description", "The description of the image.")
                 .expect()
                 .body("success", is(true))
                 .when()
-                .post("/image/8Hk0cHV")
+                .post(UPDATE_IMAGE_INFO)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(responseSpecification);
     }
     @Test
     void imageDeleteByDeleteHashCode() {
         uploadedImageDeleteHashCode = given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .multiPart("image", byte0Image)
                 .expect()
                 .body("success", is(true))
                 .body("data.id", is(notNullValue()))
                 .when()
-                .post("/image")
+                .post(POST_IMAGE_REQUEST)
                 .prettyPeek()
                 .then()
                 .extract()
@@ -198,12 +197,12 @@ public class ImageTests extends BaseTest{
                 .getString("data.deletehash");
 
             given()
-                    .headers("Authorization", token)
+                    .spec(reqSpec)
                     .when()
-                    .delete("account/{username}/image/{deleteHash}", username, uploadedImageDeleteHashCode)
+                    .delete(USERNAME_IMAGE_DELETEHASH, username, uploadedImageDeleteHashCode)
                     .prettyPeek()
                     .then()
-                    .statusCode(200);
+                    .spec(responseSpecification);
 
            uploadedImageDeleteHashCode=null;
 
@@ -214,24 +213,13 @@ public class ImageTests extends BaseTest{
     void tearDown() {
         if(uploadedImageDeleteHashCode !=null){
         given()
-                .headers("Authorization", token)
+                .spec(reqSpec)
                 .when()
-                .delete("account/{username}/image/{deleteHash}", username, uploadedImageDeleteHashCode)
+                .delete(USERNAME_IMAGE_DELETEHASH, username, uploadedImageDeleteHashCode)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(responseSpecification);
         uploadedImageDeleteHashCode = null;}
     }
 
-    private byte[] getFileContentInBase64() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File inputFile = new File(Objects.requireNonNull(classLoader.getResource("cat.jpg")).getFile());
-        byte[] fileContent = new byte[0];
-        try {
-            fileContent =   FileUtils.readFileToByteArray(inputFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return fileContent;
-    }
 }

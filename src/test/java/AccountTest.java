@@ -1,13 +1,5 @@
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -23,7 +15,7 @@ public class AccountTest extends BaseTest{
                 .headers("Authorization", token)
 //                .headers(headers)
                 .when()
-                .get("/account/{username}", username)
+                .get(ACCOUNT_USERNAME, username)
                 .then()
                 .statusCode(200);
     }
@@ -35,7 +27,7 @@ public class AccountTest extends BaseTest{
                 .log()
                 .all()
                 .when()
-                .get("https://api.imgur.com/3/account/trosbalos")
+                .get(API_3_ACC_TROS)
                 .prettyPeek()
                 .then()
                 .statusCode(200);
@@ -45,7 +37,7 @@ public class AccountTest extends BaseTest{
     @Test
     void getAccountInfoWithoutToken() {
         when()
-                .get("https://api.imgur.com/3/account/trosbalos")
+                .get(API_3_ACC_TROS)
                 .then()
                 .statusCode(401);
     }
@@ -57,7 +49,7 @@ public class AccountTest extends BaseTest{
                 .log()
                 .uri()
                 .when()
-                .get("https://api.imgur.com/3/account/trosbalos")
+                .get(API_3_ACC_TROS)
                 //   .prettyPeek()
                 .then()
                 .statusCode(200)
@@ -68,7 +60,7 @@ public class AccountTest extends BaseTest{
                 .response()
                 .jsonPath()
                 .getString("data.url");
-        assertThat(url, equalTo("trosbalos"));
+        assertThat(url, equalTo(username));
     }
 
     @Test
@@ -79,9 +71,9 @@ public class AccountTest extends BaseTest{
                 .uri()
                 .expect()
                 .body("success", is(true))
-                .body("data.url", is("trosbalos"))
+                .body("data.url", is(username))
                 .when()
-                .get("https://api.imgur.com/3/account/trosbalos")
+                .get(API_3_ACC_TROS)
                 //   .prettyPeek()
                 .then()
                 .statusCode(200)

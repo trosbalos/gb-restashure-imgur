@@ -8,15 +8,16 @@ public class AlbumTests  extends BaseTest{
     @Test
     void createAlbumTest() {
         albumDeleteHash = given()
-                .headers(headers)
-                .formParam("title","test 66666")
+                .spec(reqSpec)
+                .formParam("title",ALBUM_NAME)
                 .log()
                 .all()
                 .when()
-                .post("https://api.imgur.com/3/album")
+                .post(ALBUM)
                 .prettyPeek()
                 .then()
-                .statusCode(200)
+                .spec(responseSpecification)
+
                 .extract()
                 .response()
                 .jsonPath()
@@ -27,12 +28,12 @@ public class AlbumTests  extends BaseTest{
     void tearDown() {
         if(albumDeleteHash !=null){
             given()
-                    .headers("Authorization", token)
+                    .spec(reqSpec)
                     .when()
-                    .delete("account/{username}/image/{deleteHash}", username, albumDeleteHash)
+                    .delete(USERNAME_IMAGE_DELETEHASH, username, albumDeleteHash)
                     .prettyPeek()
                     .then()
-                    .statusCode(200);
+                    .spec(responseSpecification);
             albumDeleteHash = null;}
     }
 }
