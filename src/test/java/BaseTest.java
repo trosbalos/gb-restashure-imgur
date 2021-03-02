@@ -6,7 +6,6 @@ import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.io.FileInputStream;
@@ -15,9 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+
 public class BaseTest extends Endpoints{
-    static RequestSpecification withoutAuthReqSpec;
-    static RequestSpecification withAuthReqSpec;
+    String encodedImage;
+    String uploadedImageDeleteHashCode;
     static ResponseSpecification responseSpecification = null;
     static ResponseSpecification badRequestSpec = null;
     static RequestSpecification reqSpec;
@@ -47,12 +49,21 @@ public class BaseTest extends Endpoints{
                 .expectStatusCode(200)
                 .expectStatusLine("HTTP/1.1 200 OK")
                 .expectContentType(ContentType.JSON)
+                .expectBody("success", is(true))
+                .expectBody("data.id", is(notNullValue()))
+                .expectBody("data.description", is(nullValue()))
+                .expectBody("data.animated", is(false))
+                .expectBody("data.in_gallery", is(false))
+                .expectContentType(ContentType.JSON)
                 .build();
+
+
         badRequestSpec = new ResponseSpecBuilder()
                 .expectStatusCode(400)
                 .expectStatusLine("HTTP/1.1 400 Bad Request")
                 .expectContentType(ContentType.JSON)
                 .build();
+
 
         reqSpec = new RequestSpecBuilder()
                 .addHeader("Authorization", token)
@@ -62,18 +73,6 @@ public class BaseTest extends Endpoints{
 
 
     }
-    @BeforeAll
-    static void createSpecs() {
-        withoutAuthReqSpec = new RequestSpecBuilder()
-                .addHeader("Authorization", "")
-                .build();
-        withAuthReqSpec = new RequestSpecBuilder()
-                .addHeader("Authorization", token)
-                .log(LogDetail.ALL)
-                .build();
-
-    }
-
 
     private static void loadProperties() {
         try {
